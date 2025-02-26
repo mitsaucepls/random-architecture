@@ -1,4 +1,4 @@
-# 
+# Stairaware
 
 **About arc42**
 
@@ -19,20 +19,54 @@ concepts. For documentation of your own system you use better the
 
 </div>
 
+
 # Introduction and Goals
 
-Describes the relevant requirements and the driving forces that software
-architects and development team must consider. These include
+<!-- Describes the relevant requirements and the driving forces that software -->
+Stairaware is an interactive platform that enables users to create custom quizzes and present them in an engaging manner.
+This architecture documentation outlines the transition from the current (actual) state to the future (target) state,
+ensuring scalability, modularity, and multi-user capability.
 
--   underlying business goals,
+<!-- underlying business goals, -->
+<!-- Stairaware aims to: -->
+<!-- - Enhance learning and engagement through interactive quiz presentations. -->
+<!-- - Provide a seamless experience for quiz creation and execution. -->
+<!-- - Support multiple concurrent users with a scalable architecture. -->
 
--   essential features,
+<!-- <!-1- essential functional requirements, -1-> -->
+<!-- To fulfill its intended purpose, Stairaware must: -->
+<!-- - Allow users to create, edit, and manage quizzes with various question types. -->
+<!-- - Enable interactive presentation mode for live audience participation. -->
+<!-- - Support real-time collaboration and multi-user interactions. -->
+<!-- - Offer user authentication and role-based access control. -->
+<!-- - Provide analytics and reporting features for quiz performance insights. -->
 
--   essential functional requirements,
+<!-- <!-1- essential features, -1-> -->
+<!-- Key features of Stairaware include: -->
+<!-- - **Quiz Builder:** Intuitive interface for creating quizzes with customizable options. -->
+<!-- - **Presentation Mode:** Live quiz hosting with interactive participation. -->
+<!-- - **Multi-User Support:** Collaborative quiz creation and multiplayer engagement. -->
+<!-- - **Scalability:** Cloud-based architecture to handle growing user demand. -->
+<!-- - **Extensibility:** Modular design allowing future feature enhancements. -->
 
--   quality goals for the architecture and
+<!-- <!-1- quality goals for the architecture and -1-> -->
+<!-- To ensure a robust and maintainable system, the architecture prioritizes: -->
+<!-- - **Scalability:** Ability to support an increasing number of users and sessions. -->
+<!-- - **Modularity:** Separation of concerns to facilitate easy maintenance and upgrades. -->
+<!-- - **Performance:** Low latency interactions for real-time quiz engagement. -->
+<!-- - **Security:** Role-based access control and data protection measures. -->
+<!-- - **Usability:** A user-friendly interface accessible on multiple devices. -->
 
--   relevant stakeholders and their expectations
+<!-- To achieve the target architecture, the transition involves: -->
+<!-- 1. **Analysis & Requirement Gathering:** Identifying existing limitations and defining improvements. -->
+<!-- 2. **Architecture Redesign:** Defining a scalable and modular structure for future implementation. -->
+<!-- 3. **Documentation & Review:** Creating a detailed architecture blueprint to guide future development efforts. -->
+<!-- 4. **Implementation Planning:** Establishing a phased approach for the eventual realization of the architecture. -->
+<!-- 5. **Stakeholder Validation:** Ensuring the architecture aligns with stakeholder expectations before implementation begins. -->
+
+<!-- This documentation serves as a foundation for guiding the development and evolution of Stairaware, ensuring it meets both functional and business objectives while maintaining high-quality standards. -->
+
+
 
 ## Requirements Overview
 
@@ -42,10 +76,27 @@ architects and development team must consider. These include
 
 </div>
 
-Short description of the functional requirements, driving forces,
-extract (or abstract) of requirements. Link to (hopefully existing)
-requirements documents (with version number and information where to
-find it).
+<!-- Short description of the functional requirements, driving forces, -->
+<!-- extract (or abstract) of requirements. Link to (hopefully existing) -->
+<!-- requirements documents (with version number and information where to -->
+<!-- find it). -->
+<!-- essential functional requirements, -->
+
+To fulfill its intended purpose, Stairaware must:
+- Allow users to create, edit, and manage quizzes with various question types.
+- Enable interactive presentation mode for live audience participation.
+- Support real-time collaboration and multi-user interactions.
+- Offer user authentication and role-based access control.
+
+| ID  | Requirement                   | Explanation                                                                                                             |
+|-----|-------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| R-1 | Create, Edit, Manage Quizzes  | Users should be able to create, edit, and manage quizzes with various question types.                                   |
+| R-2 | Interactive Presentation Mode | The system should enable an interactive presentation mode for live audience participation.                              |
+| R-3 | Real-time Collaboration       | Support real-time collaboration and multi-user interactions, allowing multiple users to work together on quizzes.       |
+| R-4 | User Authentication & Roles   | Implement user authentication and role-based access control to ensure secure and restricted access.                     |
+| O-1 | Analytics & Reporting         | Provide analytics and reporting features for quiz performance insights, enabling users to track engagement and results. |
+
+Legend: R = Required, O = Optional (nice-to-have)
 
 <div class="formalpara-title">
 
@@ -53,8 +104,8 @@ find it).
 
 </div>
 
-From the point of view of the end users a system is created or modified
-to improve support of a business activity and/or improve the quality.
+<!-- From the point of view of the end users a system is created or modified -->
+<!-- to improve support of a business activity and/or improve the quality. -->
 
 <div class="formalpara-title">
 
@@ -62,9 +113,9 @@ to improve support of a business activity and/or improve the quality.
 
 </div>
 
-Short textual description, probably in tabular use-case format. If
-requirements documents exist this overview should refer to these
-documents.
+<!-- Short textual description, probably in tabular use-case format. If -->
+<!-- requirements documents exist this overview should refer to these -->
+<!-- documents. -->
 
 Keep these excerpts as short as possible. Balance readability of this
 document with potential redundancy w.r.t to requirements documents.
@@ -73,6 +124,14 @@ See [Introduction and Goals](https://docs.arc42.org/section-1/) in the
 arc42 documentation.
 
 ## Quality Goals
+
+| ID  | Requirement                | Explanation                                                                  |
+|-----|----------------------------|------------------------------------------------------------------------------|
+| Q-1 | Performance Efficiency     | The system should handle at least 1000 concurrent users without degradation. |
+| Q-2 | Usability                  | The user interface should be intuitive and accessible, ensuring ease of use. |
+| Q-3 | Scalability                | The system should support seamless scaling as the number of users increases. |
+
+Legend: Q = Quality Requirements
 
 <div class="formalpara-title">
 
@@ -111,6 +170,13 @@ architect do not know how the quality of your work will be judged…
 A table with quality goals and concrete scenarios, ordered by priorities
 
 ## Stakeholders
+
+The architecture must align with the expectations of key stakeholders:
+- **End Users (Quiz Creators & Participants):** Expect an easy-to-use platform with a seamless quiz experience.
+- **Administrators:** Require management tools for user roles, content moderation, and analytics.
+- **Developers:** Seek a well-documented, modular, and scalable architecture for efficient development and maintenance.
+- **Business Owners:** Aim for a cost-effective solution that can scale with market demands and user adoption.
+
 
 <div class="formalpara-title">
 
@@ -442,13 +508,13 @@ following white box template. It contains
 
 ***\<Overview Diagram>***
 
-Motivation  
+Motivation
 *\<text explanation>*
 
-Contained Building Blocks  
+Contained Building Blocks
 *\<Description of contained building block (black boxes)>*
 
-Important Interfaces  
+Important Interfaces
 *\<Description of important interfaces>*
 
 Insert your explanations of black boxes from level 1:
@@ -713,13 +779,13 @@ adapt this section of arc42 for all relevant environments.
 
 ***\<Overview Diagram>***
 
-Motivation  
+Motivation
 *\<explanation in text form>*
 
-Quality and/or Performance Features  
+Quality and/or Performance Features
 *\<explanation in text form>*
 
-Mapping of Building Blocks to Infrastructure  
+Mapping of Building Blocks to Infrastructure
 *\<description of the mapping>*
 
 ## Infrastructure Level 2
