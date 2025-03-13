@@ -1,0 +1,138 @@
+--- Initial ---
+Quiz-App
+
+# Teammitglieder
+
+Marvin Hofmann, Markus Siegert
+
+
+# Architektur Ist/Soll
+
+Gegeneben:
+- keine Ist-Zustand-Software oder Architektur
+Ziel:
+
+- Soll-Architektur erstellen,
+ - Quiz-App: inklusive Ansichten, Skalierbarkeit und Keep-Alive
+- Skalierbarkeit: Modularität der Instanzen ist so zu gewährleisten, dass eine unabhängige Skalierung von „Quiz spielen“, „Quiz erstellen“ und Authentifizierung mit deren zugehörigen Backend-Logiken möglich ist
+- Modularität: Es soll keine Abhängigkeiten von anderen Instanzen geben. Backend-Logiken, die von mehreren Frontend-Logiken verwendet werden, sollen in eigene Backend-Instanz ausgelagert werden.
+
+Zielgruppe:
+
+- Entwickler, zwischen 20 und 25 Jahren, Junior-Niveau
+
+# Softwareprodukt/-projekt
+
+Produkt
+
+-  Quiz-App, ähnlich zu Mentimeter mit nutzererstellten Quizzen
+-  App soll Nutzern Möglichkeit bieten Quizze als Präsentation zu erstellen und diese mit Anderen zu bespielen
+
+Software:
+Ist-Zustand:
+-  kein vorhandener Ist-Zustand
+
+Soll-Zustand:
+- Quiz-App, ausgelegt zum Spielen von nutzererstellten Quizzen mit anderen Nutzern (ein Host, mehrere Spieler)
+-  Spieler und Host sollen möglichst synchron durch die Fragen der Quizze geführt werden, Anwendung muss skalierbar sein (50 Spieler in Quiz handhabbar)
+-  Antworten für Fragen sollen verarbeitet, Punkte vergeben und eine Rangliste am Ende ausgeben werden
+-  keep-alive-System für Spieler und Hosts
+
+Tech-Stack:
+
+-  Vue.js Frontend (mehrere Instanzen für unterschiedliche Teile der Geschäftslogik)
+-  Backend-Logik mit Websockets in Microservices in python
+
+# Besonderer Fokus (Technische Konzepte, ...)
+
+Besonderer Fokus:
+
+-  Multiuser-Fähigkeit: Gewährleistung Synchronität der Spieler, benötigt Skalierungsmöglichkeit und Modularität der Instanzen
+
+--- Question answers ---
+1. Allgemeine Architektur & Skalierung
+Wie sieht die geplante Infrastruktur aus? (z. B. Cloud-Hosting, Kubernetes, Docker, Load Balancer?)
+-> Die Infrastruktur sollte ein Kubernetes Cluster sein, Dabei unterscheiden wir zwischen einem Development-Cluster und einem Production-Cluster, welcher auf der Infrastruktur eines Cloud-Anbieters wie AWS betrieben werden soll.
+
+Wie werden die Microservices untereinander kommunizieren? (z. B. gRPC, REST, Message Queue wie Kafka/RabbitMQ?)
+-> die microservices stellen im Backend je eine rest-API schnittstelle bereit. Ausnahmen sind die Websocket-Server für diese gilt folgende Infrastruktur:
+
+Kubernetes + WebSocket-Gateway (z. B. Traefik/Nginx-Ingress) + Message Broker (z. B. Redis Pub/Sub)
+Diese Lösung funktioniert lokal in einem Kubernetes-Cluster und kann nahtlos auf AWS skaliert werden.
+
+Warum diese Lösung?
+Lokal und Cloud-kompatibel:
+Lokal: Nutzt Kubernetes + Nginx-Ingress oder Traefik für WebSockets.
+AWS: Kann mit AWS Load Balancer oder API Gateway erweitert werden.
+Load Balancing für WebSockets:
+Nginx oder Traefik im Kubernetes-Cluster verteilt die WebSocket-Verbindungen. Kann in AWS mit ALB/NLB oder API Gateway kombiniert werden. Zustandslose Skalierung mit Redis Pub/Sub: WebSocket-Nachrichten werden zwischen mehreren Microservice-Instanzen synchronisiert. Skalierbar mit Redis (Lokal und auf AWS via ElastiCache) oder Kafka/NATS für größere Architekturen.
+
+Gibt es eine persistente Datenhaltung? (Datenbank-Technologie wie PostgreSQL, Redis für Sessions/Caching?)
+-> es gibt eine postgreSQL instanz, welche als einziger datenspeicherpunkt angeführt ist. Sie wird durc heinen redis cache entlastet.
+
+2. Frontend & Benutzerfluss
+Wie sieht der typische User Flow aus? (z. B. Nutzer registriert sich, erstellt ein Quiz, lädt Spieler ein, startet das Quiz)
+-> Nutzer registrieren sich, loggen sich ein, gelangen zur Startseite wo sie quizze erstellen oder spielen können. Beim spielen von Quizzen können Sie eine Quiz-Id eingeben oder einen QR-Code scannen. Dann kommen Sie in den Warteraum, falls das Quiz noch nicht gestartet ist. Der Host, welcher den QR-Code oder die Quiz-ID über die Präsentation bereitstellt, kann das Quiz starten und zeigt auf seinem bildschirm die Frage an. Währenddessen wird auf dem Mobilgerät des Spielers die Antwortmölichkeiten angezeigt.
+Nach einem Timer von 15 Sekunden wird der Spieler automatisch zur Auflösung der Frage weitergeleitet. Auf dem Host-Bildschirm sieht er die richtige antwort, wohingegen er auf seinem bildschirm sieht, welche antwort die richtige war. Danach folgt ein scoreboard, welches auf dem Host als auch auf dem Spieler-Bildschirm angezeigt wird. Daraufhin folgt die nächste Frage und der Zyklus wiederholt sich. Es gibt 3 Arten an Fragen: wahr/falsch, multiple-choice aus 4 Möglichkeiten und freie Texteingabe.
+Am Ende des Quizzes wird auf dem Host-Screen eine Siegerehrung der Top-3 angezeigt, auf dem jeweiligen Spieler-Screen die eigene platzierung.
+Quizze sollen von jedem erstellt werden können. Die erstellung erfolgt in form von Präsentationsfolien, auf denen die Fragen angezeigt werden und der Ersteller den Fragen-Typ aus den 3 verfügbaren Typen auswählen kann.
+
+Wie werden Quizze gespeichert? (z. B. JSON-Strukturen, relationale Tabellen?)
+-> quizze sollen idealerweise in einer json-struktur gespeichert werden.
+
+Wie werden die einzelnen Vue-Instanzen voneinander abgegrenzt? (z. B. eigene SPAs für "Quiz erstellen", "Quiz spielen", "Authentifizierung"?)
+-> die vue instanzen sollen je nach geschäftslogik voneinander abgegrenzt werden. Eine Instanz zum Erstellen von Quizzes, eine Instanz zum spielen von Quizzes und eine Instanz zur Authentifizierung.
+
+3. Synchronität & WebSockets
+Wie wird die Synchronität der Spieler gewährleistet? (Heartbeat, Leader Election, Event-basierte Updates?)
+-> Spieler und Host senden alle 20 Sekunden ein Hearbeat-Signal an den Websocket-Endpoint/Broker, Spieler die das Signal 2 mal nicht senden werden automatisch aus dem Quiz entfernt, Wenn ein Host mehr als 2 mal das Signal nicht sendet, wird das Quiz beendet.
+
+Soll der Host Live-Steuerungsmöglichkeiten haben? (z. B. kann er bestimmen, wann nächste Frage erscheint?)
+-> Ja, der host soll steuern können, welche Frage angezeigt wird. Spieler sollten entsprechend mit dem Host zur nächsten Frage genommen werden.
+
+Was passiert, wenn ein Spieler die Verbindung verliert? (Re-Join-Mechanismus, State-Synchronisierung?)
+-> Spieler sollten zunächst nicht re-joinen können.
+
+4. Authentifizierung & Benutzerverwaltung
+Gibt es eine Benutzerverwaltung oder können Spieler als Gäste teilnehmen?
+-> Spieler sollen als Gäste teilnehmen können. Dabei erhalten Sie einen witzigen Nutzername vom System vorgeschlagen, welcher sich nicht mit anderen Spielern doppeln sollte.
+
+Welche Auth-Methode wird verwendet? (JWT, OAuth2, Sessions?)
+-> Ich möchte eine OAuth2 Authentifizierung mit Email & Passwort, sowie Social-Login Möglichkeit, aber auch die Option als Gast beizutreten.
+
+5. Besondere Anforderungen & Nicht-Funktionales
+Gibt es spezielle Performance- oder Latenzanforderungen? (z. B. max. Antwortzeit bei 50 Spielern < 200ms?)
+-> Ja, die Anwendung sollte 50 Spieler pro Quiz handhaben können. Die Latez zwischen Host und Spielern sollte dabei maximal 200ms betragen. (z.B. beim wechseln der Frage)
+
+Sind Datenschutz- oder Sicherheitsaspekte relevant? (z. B. Speicherung personenbezogener Daten?)
+-> Ja, wenn sich nutzer registrieren und einloggen, dann sind Vorname, Nachname, Anschrift, E-Mail als Daten relevant.
+
+Warum JSON für Quizze?
+-> PostgreSQL mit JSONB ist akzeptabel und kann verwendet werden.
+
+Indexierung & Optimierung:
+Quiz-IDs häufiger, die Spielergebnisse nach spielen des Quizzes nur selten.
+
+WebSockets & Skalierung
+WebSocket Load Balancing:
+-> Skalierung mit Kubernetes & Service Mesh (z. B. Istio, Traefik, Nginx-Ingress).
+
+Redis Pub/Sub vs. Kafka:
+Ich möchte Kafka oder NATS als Message Broker verwenden, um die skalierbarkeit zu gewährleisten.
+
+Frontend & UX
+
+Vue-Instanzen separat oder als Module?
+Die Vue-Instanzen sollten als monorepo in microfrontends laufen.
+
+Offline-Funktionalität? Falls Nutzer schlechte Verbindungen haben (z. B. mobiles Internet), wäre ein einfaches lokales Caching für Quiz-Fragen eine Idee.
+-> die idee finde ich gut, können wir berücksichtigen
+
+Sicherheit & Datenschutz
+Ich möchte möglichst Datenschutzkonform arbeiten, weshalb ich Auth0  bevorzuge. Spieler, die als Gäste gespielt haben, sollen nach ende des Quizzes wieder gelöscht werden.
+
+Performance & Testing
+Lasttests geplant? Wie wird sichergestellt, dass das System wirklich 50 Spieler pro Quiz aushält? K6 oder Locust für WebSocket-Lasttests könnten nützlich sein. -> lasttests sollen vorerst nicht berücksichtigt werden.
+
+Datenbank-Query-Optimierung: Nutzt ihr ORM (z. B. SQLAlchemy für Python)? Falls ja, lohnt sich ein Blick auf Query-Profiling mit EXPLAIN ANALYZE in PostgreSQL.
+Ja, python soll SQLAlchemy als ORM für die PostgreSQL Datenbank nutzen.
