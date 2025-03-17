@@ -1,0 +1,70 @@
+%% Detailed Distribution Diagram for Quiz Platform
+flowchart TD
+    %% External Client
+    User[User Requests]:::external
+
+    %% Virtual Layer in Availability Zone 1
+    subgraph K8S[AWS Kubernetes Cluster]
+        LB1[Load Balancer / API Gateway]:::virtual
+        subgraph Frontend1[Frontend Infrastructure]
+            CDN1[CDN / Web Servers]:::virtual
+            MF1[Microfrontend Module 1]:::virtual
+            MF2[Microfrontend Module 2]:::virtual
+        end
+        subgraph Backend1[Backend Infrastructure]
+            MS1[Authentication Service]:::virtual
+            MS2[Quiz Management Service]:::virtual
+            MS3[Real-Time Communication Service]:::virtual
+            %% Shared Specialized Components
+            DB[Managed Database<br>PostgreSQL]:::virtual
+            RC[Redis Cache]:::virtual
+        end
+        WS1[WebSocket Server / Message Broker]:::virtual
+    end
+
+    %% Cross-Cutting Components
+    MON[Monitoring]:::virtual
+    LOG[Logging]:::virtual
+    SEC[Security<br>Firewalls, VPNs]:::virtual
+
+    %% Mapping Virtual Resources to Physical Hosts
+    %% LB1 -->|Deployed on| PH_A
+    %% CDN1 -->|Deployed on| PH_A
+    %% MS1 -->|Deployed on| PH_A
+    %% WS1 -->|Deployed on| PH_A
+
+    %% External access via Load Balancers
+    User --> LB1
+
+    %% Internal communication in AZ1
+    LB1 --> CDN1
+    LB1 --> WS1
+    LB1 --> MS1
+    LB1 --> MS2
+    LB1 --> MS3
+    CDN1 --> MF1
+    CDN1 --> MF2
+    MS3 --> WS1
+
+    %% Communication to shared specialized components
+    MS2 --> DB
+    MS2 --> RC
+
+    %% Cross-Cutting Services Integration
+    MON --- LB1
+    LOG --- LB1
+    SEC --- LB1
+
+    %% Legend Informational, not connected
+    subgraph Legend[Legend]
+      direction LR
+      VIRTUAL[Virtual Resource]:::virtual
+      DEDICATED[Dedicated Hardware]:::dedicated
+      EXTERNAL[External Client]:::external
+    end
+
+%% Style Definitions
+classDef dedicated fill:#bbf,stroke:#333,stroke-width:2px;
+classDef virtual fill:#f9f,stroke:#333,stroke-width:2px;
+classDef external fill:#ffcc00,stroke:#333,stroke-width:2px;
+
